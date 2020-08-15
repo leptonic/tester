@@ -6,6 +6,7 @@ import numpy as np
 from math import isnan
 # import math 
 path = "C:\\dotchart\\dc5.bmp"
+font = cv2.FONT_HERSHEY_SIMPLEX
 img_length=0
 img_width=0
 img_center_x=0
@@ -50,6 +51,14 @@ class vdot_pos:
         # self.column=0        
         self.x=0.0
         self.y=0.0
+class cRCS:
+     def __init__(self):
+        # self.row=0
+        # self.column=0
+        self.rcs_x=0.0
+        self.rcs_y=0.0
+        self.x=0
+        self.y=0
 
 Star_Up=dot_pos()
 Star_Down=dot_pos()
@@ -137,11 +146,26 @@ def getUnit():
     return Get_Average(golden_unit_temp2)
 
 def get_distance(x1,y1,x2,y2):
-    return (((x1-x2)**2+(y1-y2)**2)**0.5)   
+    return (((float(x1)-float(x2))**2+(float(y1)-float(y2))**2)**0.5)   
 
+def detect_direct(x0,y0,x1,y1,dotUnit,sin_t):
+    global spot_dia
+    if dotUnit==0 or sin_t==0:
+        print("!!!Error input error at >>Detect_Direct<<")
+    if(get_distance(x0,y0,x1,y1)>(1.414*dotUnit)) or (x0==x1 and y0==y1):
+        return 0
+    else:
+        if (y1<(y0+sin_t*dotUnit) and y1>(y0-sin_t*dotUnit)):#Sin(5 degree)=0.087 
+            if x1>x0 :
+                return 4
+            else:
+                return 3
 
-
-
+        if  (x1<(x0+sin_t*dotUnit) and x1>(x0-sin_t*dotUnit)):#Sin(5 degree)=0.087
+            if y1>y0:
+                return 2
+            else:
+                return 1
 
 #get some basic parameters
 print("=========start==========")
@@ -572,10 +596,77 @@ print("==>Map spot Count:", map_count)
 
 #####Distorion 2nd Phase
 #Map -->fmap
+#all dots--> All_dots
 #S2.6 Avoid Redundancy fmap
+#check redundancy
+rc=0
+for i in fmap:
+        rct=0
+        for j in fmap:
+            if i.x==j.x and i.y==j.y:
+                rct+=1
+        if rct>1:
+            rc+=rct
+if rc>0:
+    print ("?? Redundancy data have been found:",rc)
 
+##2.7 Build RCS (Relative Coordinates System)
 
+# 2.7.1 Build Dot_RCS center is (0,0) left one is (-1,0) up one is (0,-1)
+#cRCS
+centerRow=[]
+#Setup ZERO position
+tr=cRCS()
+tr.rcs_x=0
+tr.rcs_y=0
+tr.x=spot_center_x
+tr.y=spot_center_y
+centerRow.append(tr)
+cr_index=0
+# Find  center Row
+for i in  range(1,int(map_Column_cnt/2)+3):  #find right arrow
 
+    for c in All_dots: 
+        tr=cRCS() 
+        tr.rcs_y=0  
+        #print(i,":",len(centerRow))
+        if(detect_direct(centerRow[cr_index].x,centerRow[cr_index].y,c.x,c.y,spot_Unit,Sin_theta*2)==4 ):
+            cr_index+=1        
+            tr.rcs_x=i
+            tr.x=c.x
+            tr.y=c.y
+            centerRow.append(tr)
+            break
+
+for i in  range(1,int(map_Column_cnt/2)+3):  #find left arrow
+
+    for c in All_dots: 
+        tr=cRCS() 
+        tr.rcs_y=0  
+        #print(i,":",len(centerRow))
+        if(i==1):
+             if(detect_direct(centerRow[0].x,centerRow[0].y,c.x,c.y,spot_Unit,Sin_theta*2)==3 ):
+                cr_index+=1        
+                tr.rcs_x=-i
+                tr.x=c.x
+                tr.y=c.y
+                centerRow.append(tr)
+                break
+
+        else:
+            if(detect_direct(centerRow[cr_index].x,centerRow[cr_index].y,c.x,c.y,spot_Unit,Sin_theta*2)==3 ):
+                cr_index+=1        
+                tr.rcs_x=-i
+                tr.x=c.x
+                tr.y=c.y
+                centerRow.append(tr)
+                break
+
+#check
+for check_point in centerRow:
+    cv2.circle(imgcv,(check_point.x,check_point.y),10,(0,0,255))
+    texts="("+str(check_point.rcs_x)+","+str(check_point.rcs_y)+")"
+    cv2.putText(imgcv, texts, (check_point.x,check_point.y), font, 0.4, (180, 185, 185), 1)
 
 cv2.imshow(" ",imgcv)
 cv2.waitKey(0) #35   
