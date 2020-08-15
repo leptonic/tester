@@ -614,28 +614,32 @@ if rc>0:
 
 # 2.7.1 Build Dot_RCS center is (0,0) left one is (-1,0) up one is (0,-1)
 #cRCS
-centerRow=[]
+vfmap=[]
+goldenRow=[]
 #Setup ZERO position
 tr=cRCS()
 tr.rcs_x=0
 tr.rcs_y=0
 tr.x=spot_center_x
 tr.y=spot_center_y
-centerRow.append(tr)
-cr_index=0
+vfmap.append(tr)
+goldenRow.append(tr)
+vfmap_index=0
+
 # Find  center Row
 for i in  range(1,int(map_Column_cnt/2)+3):  #find right arrow
 
     for c in All_dots: 
         tr=cRCS() 
         tr.rcs_y=0  
-        #print(i,":",len(centerRow))
-        if(detect_direct(centerRow[cr_index].x,centerRow[cr_index].y,c.x,c.y,spot_Unit,Sin_theta*2)==4 ):
-            cr_index+=1        
+        #print(i,":",len(vfmap))
+        if(detect_direct(vfmap[vfmap_index].x,vfmap[vfmap_index].y,c.x,c.y,spot_Unit,Sin_theta*2)==4 ):
+            vfmap_index+=1        
             tr.rcs_x=i
             tr.x=c.x
             tr.y=c.y
-            centerRow.append(tr)
+            vfmap.append(tr)
+            goldenRow.append(tr)
             break
 
 for i in  range(1,int(map_Column_cnt/2)+3):  #find left arrow
@@ -643,27 +647,87 @@ for i in  range(1,int(map_Column_cnt/2)+3):  #find left arrow
     for c in All_dots: 
         tr=cRCS() 
         tr.rcs_y=0  
-        #print(i,":",len(centerRow))
+        #print(i,":",len(vfmap))
         if(i==1):
-             if(detect_direct(centerRow[0].x,centerRow[0].y,c.x,c.y,spot_Unit,Sin_theta*2)==3 ):
-                cr_index+=1        
+            if(detect_direct(vfmap[0].x,vfmap[0].y,c.x,c.y,spot_Unit,Sin_theta*2)==3 ):
+                vfmap_index+=1        
                 tr.rcs_x=-i
                 tr.x=c.x
                 tr.y=c.y
-                centerRow.append(tr)
+                vfmap.append(tr)
+                goldenRow.append(tr)
                 break
 
         else:
-            if(detect_direct(centerRow[cr_index].x,centerRow[cr_index].y,c.x,c.y,spot_Unit,Sin_theta*2)==3 ):
-                cr_index+=1        
+            if(detect_direct(vfmap[vfmap_index].x,vfmap[vfmap_index].y,c.x,c.y,spot_Unit,Sin_theta*2)==3 ):
+                vfmap_index+=1        
                 tr.rcs_x=-i
                 tr.x=c.x
                 tr.y=c.y
-                centerRow.append(tr)
+                vfmap.append(tr)
+                goldenRow.append(tr)
                 break
 
+
+           
+###Make whole RCS map
+for inputc in goldenRow:
+    #find column
+
+    # inputc.rcs_x=vfmap[0].rcs_x
+    # inputc.rcs_y=vfmap[0].rcs_y
+    # inputc.x=vfmap[0].x
+    # inputc.y=vfmap[0].y
+
+    for j in range(1,int(map_Row_cnt/2)+3):# down
+        for c in All_dots:
+            tr=cRCS() 
+            tr.rcs_x=inputc.rcs_x 
+            #print(i,":",len(vfmap))
+            if(j==1):
+                if(detect_direct(inputc.x,inputc.y,c.x,c.y,spot_Unit,Sin_theta*2)==2 ):
+                    vfmap_index+=1        
+                    tr.rcs_y=j
+                    tr.x=c.x
+                    tr.y=c.y
+                    vfmap.append(tr)
+                    break
+
+            else:
+                if(detect_direct(vfmap[vfmap_index].x,vfmap[vfmap_index].y,c.x,c.y,spot_Unit,Sin_theta*2)==2):
+                    vfmap_index+=1        
+                    tr.rcs_y=j
+                    tr.x=c.x
+                    tr.y=c.y
+                    vfmap.append(tr)
+                    break
+
+    for j in range(1,int(map_Row_cnt/2)+3): #up
+        for c in All_dots:
+            tr=cRCS() 
+            tr.rcs_x=inputc.rcs_x 
+            #print(i,":",len(vfmap))
+            if(j==1):
+                if(detect_direct(inputc.x,inputc.y,c.x,c.y,spot_Unit,Sin_theta*2)==1 ):
+                    vfmap_index+=1        
+                    tr.rcs_y=-j
+                    tr.x=c.x
+                    tr.y=c.y
+                    vfmap.append(tr)
+                    break
+
+            else:
+                if(detect_direct(vfmap[vfmap_index].x,vfmap[vfmap_index].y,c.x,c.y,spot_Unit,Sin_theta*2)==1):
+                    vfmap_index+=1        
+                    tr.rcs_y=-j
+                    tr.x=c.x
+                    tr.y=c.y
+                    vfmap.append(tr)
+                    break
+                         
+                        
 #check
-for check_point in centerRow:
+for check_point in vfmap:
     cv2.circle(imgcv,(check_point.x,check_point.y),10,(0,0,255))
     texts="("+str(check_point.rcs_x)+","+str(check_point.rcs_y)+")"
     cv2.putText(imgcv, texts, (check_point.x,check_point.y), font, 0.4, (180, 185, 185), 1)
