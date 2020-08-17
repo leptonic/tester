@@ -19,8 +19,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 from math import isnan
 # import math 
-path = "C:\\dotchart\\dc5.bmp"
-font = cv2.FONT_HERSHEY_SIMPLEX
+
+
+######Settings############
+Settings_path = "C:\\dotchart\\dc5.bmp"
+Settings_pixel_size=1.55
+Settings_EFL_mm=2.5
+Settings_PTR_star_offset=3 #
+Settings_font = cv2.FONT_HERSHEY_SIMPLEX
+################################
+
 img_length=0
 img_width=0
 img_center_x=0
@@ -42,9 +50,11 @@ map_offset_y=0
 map_theta=0.0
 map_count=0
 fmap=[]
-
-PTR_star_offset=3 #
 All_dots=[] #real all spots in photo
+
+
+
+
 
 class cdot_map:
     def __init__(self):
@@ -73,6 +83,15 @@ class cRCS:
         self.rcs_y=0.0
         self.x=0
         self.y=0
+
+class cDT:
+     def __init__(self):
+        # self.row=0
+        # self.column=0
+        self.rcs_x=0.0
+        self.rcs_y=0.0
+        self.distortion=0.0
+        
 
 Star_Up=dot_pos()
 Star_Down=dot_pos()
@@ -159,6 +178,16 @@ def getUnit():
     # print("golden_unit_temp2",golden_unit_temp2)
     return Get_Average(golden_unit_temp2)
 
+
+def abs_value(a):
+    
+    if a >= 0:
+        a = a
+    else:
+        a = -a
+    return a
+
+
 def get_distance(x1,y1,x2,y2):
     return (((float(x1)-float(x2))**2+(float(y1)-float(y2))**2)**0.5)   
 
@@ -184,7 +213,7 @@ def detect_direct(x0,y0,x1,y1,dotUnit,sin_t):
 #get some basic parameters
 print("=========start==========")
 
-img = Image.open(path)
+img = Image.open(Settings_path)
 
 img_length=img.width
 img_width=img.height
@@ -194,7 +223,7 @@ img_center_y=round(img_width/2,0)
 print("w=",img_length,"l=",img_width,"cx=",img_center_x,"cy=",img_center_y)
 
 #S0. F     ind the center point
-imgcv = cv2.imread(path)
+imgcv = cv2.imread(Settings_path)
 GrayImage= cv2.cvtColor(imgcv,cv2.COLOR_BGR2GRAY)
 GrayImage= cv2.medianBlur(GrayImage,5)
 ret,th1 = cv2.threshold(GrayImage,127,255,cv2.THRESH_BINARY)
@@ -345,10 +374,10 @@ for i in range(0,int(map_Row_cnt/2)+3):
         map_y.append(oy)     
 
 #S2.1 Get PTR Dots_cross
-#PTR_star_offset spot_center_y
+#Settings_PTR_star_offset spot_center_y
 
 #S2.1.2 Get Star_Up Star_Down Star_Left Star_Right
-PTRoffset=PTR_star_offset*spot_Unit
+PTRoffset=Settings_PTR_star_offset*spot_Unit
 Star_Up.x=spot_center_x
 Star_Up.y=spot_center_y-PTRoffset
 
@@ -498,9 +527,20 @@ if PTR_LU.y > PTR_RU.y:
 else:
 
     map_theta= map_theta# is PTR 's R !!
+#pixel_size=1.55
+#EFL_mm=2.5
+#pan = Math.Atan(((cx - FULLSIZE_WIDTH/2) * IQTester.Properties.Settings.Default.Pixel_size_um) / (IQTester.Properties.Settings.Default.EFL_mm * 1000)) * 180 / Math.PI;
+tanPan=((spot_center_x-img_center_x)*Settings_pixel_size)/Settings_EFL_mm
+Pan=np.degrees(np.arctan(tanPan))
 
-  
-print("map_theta",map_theta)
+tanTilt=((spot_center_y-img_center_y)*Settings_pixel_size)/Settings_EFL_mm
+Tilt=np.degrees(np.arctan(tanTilt))
+
+print("\r\n\r\n\r\n")  
+print(">>>>>>>tanPan:",Pan)
+print(">>>>>>>tanTilt:",Tilt)
+print(">>>>>>>Rotation:",map_theta)
+print("\r\n\r\n\r\n")
 #Draw all map
 
 Cos_theta=np.cos(map_theta*np.pi/180)
@@ -744,7 +784,7 @@ for inputc in goldenRow:
 # # # for check_point in RCS_Spots:
 # # #     cv2.circle(imgcv,(check_point.x,check_point.y),10,(0,0,255))
 # # #     texts="("+str(check_point.rcs_x)+","+str(check_point.rcs_y)+")"
-# # #     cv2.putText(imgcv, texts, (check_point.x,check_point.y), font, 0.4, (180, 185, 185), 1)
+# # #     cv2.putText(imgcv, texts, (check_point.x,check_point.y), Settings_font, 0.4, (180, 185, 185), 1)
 
 # S2.7.2 Get Whole RCS_map
 #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -860,11 +900,57 @@ for inputc in goldenRow_map:
                     RCS_Map.append(tr)
                     break
 #check
-for check_point in RCS_Map:
-    cv2.circle(imgcv,(check_point.x,check_point.y),10,(0,0,255))
-    texts="("+str(check_point.rcs_x)+","+str(check_point.rcs_y)+")"
-    cv2.putText(imgcv, texts, (check_point.x,check_point.y), font, 0.4, (180, 185, 185), 1)
+# # for check_point in RCS_Map:
+# #     cv2.circle(imgcv,(check_point.x,check_point.y),10,(0,0,255))
+# #     texts="("+str(check_point.rcs_x)+","+str(check_point.rcs_y)+")"
+# #     cv2.putText(imgcv, texts, (check_point.x,check_point.y), Settings_font, 0.4, (180, 185, 185), 1)
+#
 
+#########
+##S3 Calculating Distortion
+#RCS_Map & RCS_Spots
+######
+#S3.1 get all distortion
+Dt=[]
+Dt_v=[]
+dbg_count=0
+for sp in RCS_Spots:
+    tr=cDT()
+    tr.rcs_x=sp.rcs_x
+    tr.rcs_y=sp.rcs_y
+    for pMap in RCS_Map:
+        if(sp.rcs_x==pMap.rcs_x) and (sp.rcs_y==pMap.rcs_y):
+            if(pMap.x!=spot_center_x)and(pMap.y!=spot_center_y):
+                AD=get_distance(spot_center_x,spot_center_y,sp.x,sp.y)
+                PD=get_distance(spot_center_x,spot_center_y,pMap.x,pMap.y)
+                tr.distortion=(AD-PD)*100/PD
+                tr.distortion=abs_value(tr.distortion)
+                Dt_v.append(tr.distortion)
+                Dt.append(tr)
 
+# Dt.sort(reverse=True)
+Dt_v.sort(reverse=True)
+Dt_Max=Dt_v[0]
+print(">>>>>Distortion Max:",Dt_Max)
+
+for dts in Dt:
+
+    if isValue(dts.distortion,Dt_Max,0.01) :
+        px=0
+        py=0
+        for sp in RCS_Spots:
+            if(dts.rcs_x==sp.rcs_x) and (dts.rcs_y==sp.rcs_y):
+                px=sp.x
+                py=sp.y
+                break
+
+        cv2.circle(imgcv,(px,py),10,(0,255,0))
+        texts="Max <"+str(dts.distortion)+">"
+        cv2.putText(imgcv, texts, (px,py), Settings_font, 0.4, (80, 85, 185), 1)
+
+#get avg
+
+dt_avg=Get_Average(Dt_v)
+print(">>>>>Distortion AVG:",dt_avg)
 cv2.imshow(" ",imgcv)
 cv2.waitKey(0) #35   
