@@ -18,11 +18,12 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from math import isnan
+import const
 # import math 
 
 
 ######Settings############
-Settings_path = "C:\\dotchart\\dc5.bmp"
+Settings_path = "C:\\dotchart\\f5\\f5_s5.bmp"
 Settings_pixel_size=1.55
 Settings_EFL_mm=2.5
 Settings_PTR_star_offset=3 #
@@ -53,7 +54,7 @@ fmap=[]
 All_dots=[] #real all spots in photo
 
 
-
+const.DEBUG=1
 
 
 class cdot_map:
@@ -91,6 +92,10 @@ class cDT:
         self.rcs_x=0.0
         self.rcs_y=0.0
         self.distortion=0.0
+class cRelation_map:
+    def __init__(self):
+        self.map_num=0
+        self.spot_num=0
         
 
 Star_Up=dot_pos()
@@ -113,11 +118,12 @@ PTR_RU=dot_pos()
 PTR_LD=dot_pos()
 PTR_RD=dot_pos()
 
-class cRelation_map:
-    def __init__(self):
-        self.map_num=0
-        self.spot_num=0
+def DEBUG_PRINT(*kwargs):
 
+    if(const.DEBUG):
+
+        print(*kwargs)
+        
 def error_report(str):
     print("\r\n\r\n\r\n\r\n")
     print("!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -193,7 +199,7 @@ def get_distance(x1,y1,x2,y2):
 
 def detect_direct(x0,y0,x1,y1,dotUnit,sin_t):
     global spot_dia
-    if dotUnit==0 or sin_t==0:
+    if dotUnit==0: #or sin_t==0:
         print("!!!Error input error at >>Detect_Direct<<")
     if(get_distance(x0,y0,x1,y1)>(1.414*dotUnit)) or (x0==x1 and y0==y1):
         return 0
@@ -929,8 +935,10 @@ for sp in RCS_Spots:
                 Dt.append(tr)
 
 # Dt.sort(reverse=True)
+print(Dt_v)
 Dt_v.sort(reverse=True)
 Dt_Max=Dt_v[0]
+
 print(">>>>>Distortion Max:",Dt_Max)
 
 for dts in Dt:
