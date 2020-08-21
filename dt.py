@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from math import isnan
 import const
+import sys
 # import math 
 
 
@@ -123,7 +124,7 @@ def DEBUG_PRINT(*kwargs):
     if(const.DEBUG):
 
         print(*kwargs)
-        
+
 def error_report(str):
     print("\r\n\r\n\r\n\r\n")
     print("!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -228,7 +229,7 @@ img_center_y=round(img_width/2,0)
   ##check
 print("w=",img_length,"l=",img_width,"cx=",img_center_x,"cy=",img_center_y)
 
-#S0. F     ind the center point
+#S0. Find the center point
 imgcv = cv2.imread(Settings_path)
 GrayImage= cv2.cvtColor(imgcv,cv2.COLOR_BGR2GRAY)
 GrayImage= cv2.medianBlur(GrayImage,5)
@@ -242,15 +243,26 @@ kernel = np.ones((5,5),np.uint8)
 erosion = cv2.erode(th2,kernel,iterations=1)
 dilation = cv2.dilate(erosion,kernel,iterations=1)
 
-imgray=cv2.Canny(erosion,30,100)
+imgray=cv2.Canny(erosion,1,30)#30 100
+# circles = cv2.HoughCircles(imgray,cv2.HOUGH_GRADIENT,1,30,
+#                             param1=50,param2=30,minRadius=5,maxRadius=60)
 circles = cv2.HoughCircles(imgray,cv2.HOUGH_GRADIENT,1,30,
-                            param1=50,param2=30,minRadius=5,maxRadius=60)
+                            param1=50,param2=10,minRadius=2,maxRadius=22)
 cc=0
 circles = np.uint16(np.around(circles))
 
 # print f
 #print(circles)
-
+# ct=0
+# for cp in circles[0,:]: 
+#     ct+=1
+#     cv2.circle(imgcv,(cp[0],cp[1]),5,(0,255,55))
+# cv2.imshow(" ",imgray)
+# cv2.waitKey(0) #35
+# cv2.imshow(" ",imgcv)
+# cv2.waitKey(0) #35
+# print(ct)   
+# sys.exit()
 #Find the centry spot
 spot_deviation=0
 goldSpot_cnt=0
