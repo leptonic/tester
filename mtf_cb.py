@@ -13,8 +13,10 @@ import numpy as np
 import const
 import HGGT
 ######Settings############
-Settings_path = "C:\\dotchart\\f4f6\\MTF_offset.bmp"
-
+Settings_path = "C:\\dotchart\\f4f6\\MTF8_offset.bmp"
+Settings_out_path = "C:\\dotchart\\f4f6\\output\\"
+ROIsize=100
+offsetDmv=10
 
 
 img_length=0
@@ -31,6 +33,49 @@ def DEBUG_PRINT(*kwargs):
 
         print(*kwargs)
 
+def cut_S_Area(sn):
+    fn='S'+'%d'%sn
+    global cb_center
+    global ROIsize
+    px=cb_center.x
+    py=cb_center.y
+
+    cut_ROI(fn,1,px,py,ROIsize)
+    cut_ROI(fn,2,px,py,ROIsize)
+    cut_ROI(fn,3,px,py,ROIsize)
+    cut_ROI(fn,4,px,py,ROIsize)
+def print_p(x,y):
+    strs="("+str(x)+","+str(y)+")"
+    DEBUG_PRINT(strs)
+
+def cut_ROI(name,direct,px,py,rSize):
+    ap_x=0
+    ap_y=0
+    offset=int(rSize/2)+offsetDmv#2.5*Dmv
+    
+    if direct == 1 :
+        ap_x=px
+        ap_y=py-offset
+    elif direct == 2 :
+        ap_x=px+offset
+        ap_y=py
+    elif direct == 3 :
+        ap_x=px
+        ap_y=py+offset
+    else:
+        ap_x=px-offset
+        ap_y=py
+    sp_x=int(ap_x)-int(rSize/2)
+    sp_y=int(ap_y)-int(rSize/2)
+    filename=Settings_out_path+name+'_'+'%d'%direct+'.bmp'
+
+    cv2.waitKey(0) #35   
+    cv2.imwrite(filename,imgcv[sp_y:sp_y+rSize,sp_x:sp_x+rSize])
+
+
+######################################################
+######################################################
+######################################################
 print("++++MFT Calculator Start ++++")
 ##S1 get basic paramter
 img = Image.open(Settings_path)
@@ -75,6 +120,8 @@ cb_center.y=int(round(sumy/isize,0))
 ##check
 # strs="("+str(cb_center.x)+","+str(cb_center.y)+")"
 # DEBUG_PRINT(strs)
+cut_S_Area(1)
 
 cv2.imshow(" ",imgcv)
-cv2.waitKey(0) #35  
+cv2.waitKey(0) #35 
+cv2.destroyAllWindows() 
