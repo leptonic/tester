@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import const
 import HGGT
+import Run_cmd
 ######Settings############
 Settings_path = "C:\\dotchart\\f4f6\\MTF8_offset.bmp"
 Settings_out_path = "C:\\dotchart\\f4f6\\output\\"
@@ -26,6 +27,7 @@ img_center_y=0
 const.DEBUG=1
 
 cb_center=HGGT.dot_pos()
+rt=[]
 
 def DEBUG_PRINT(*kwargs):
 
@@ -40,19 +42,21 @@ def cut_S_Area(sn):
     px=cb_center.x
     py=cb_center.y
 
-    cut_ROI(fn,1,px,py,ROIsize)
-    cut_ROI(fn,2,px,py,ROIsize)
-    cut_ROI(fn,3,px,py,ROIsize)
-    cut_ROI(fn,4,px,py,ROIsize)
+    cut_ROI(fn,1,px,py,ROIsize,sn)
+    cut_ROI(fn,2,px,py,ROIsize,sn)
+    cut_ROI(fn,3,px,py,ROIsize,sn)
+    cut_ROI(fn,4,px,py,ROIsize,sn)
+
+
 def print_p(x,y):
     strs="("+str(x)+","+str(y)+")"
     DEBUG_PRINT(strs)
 
-def cut_ROI(name,direct,px,py,rSize):
+def cut_ROI(name,direct,px,py,rSize,sn):
     ap_x=0
     ap_y=0
     offset=int(rSize/2)+offsetDmv#2.5*Dmv
-    
+    global rt
     if direct == 1 :
         ap_x=px
         ap_y=py-offset
@@ -69,14 +73,14 @@ def cut_ROI(name,direct,px,py,rSize):
     sp_y=int(ap_y)-int(rSize/2)
     filename=Settings_out_path+name+'_'+'%d'%direct+'.bmp'
 
-    cv2.waitKey(0) #35   
     cv2.imwrite(filename,imgcv[sp_y:sp_y+rSize,sp_x:sp_x+rSize])
+    rtt=Run_cmd.run_imtf(sn,direct)
+    rt.append(rtt)
 
-
 ######################################################
 ######################################################
 ######################################################
-print("++++MFT Calculator Start ++++")
+DEBUG_PRINT("++++MFT Calculator Start ++++")
 ##S1 get basic paramter
 img = Image.open(Settings_path)
 img_length=img.width
@@ -121,7 +125,9 @@ cb_center.y=int(round(sumy/isize,0))
 # strs="("+str(cb_center.x)+","+str(cb_center.y)+")"
 # DEBUG_PRINT(strs)
 cut_S_Area(1)
-
-cv2.imshow(" ",imgcv)
-cv2.waitKey(0) #35 
-cv2.destroyAllWindows() 
+min_mtf=HGGT.get_Min_value(rt)
+DEBUG_PRINT("Min MTF:"+str(min_mtf))
+print(min_mtf)
+# cv2.imshow(" ",imgcv)
+# cv2.waitKey(0) #35 
+# cv2.destroyAllWindows() 
