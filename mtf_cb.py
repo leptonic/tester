@@ -11,8 +11,10 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import const
+#--
 import HGGT
 import Run_cmd
+import SaveLog
 ######Settings############
 Settings_path = "C:\\dotchart\\f4f6\\MTF8_offset.bmp"
 Settings_out_path = "C:\\dotchart\\f4f6\\output\\"
@@ -24,7 +26,7 @@ img_length=0
 img_width=0
 img_center_x=0
 img_center_y=0
-const.DEBUG=1
+const.DEBUG=0
 
 cb_center=HGGT.dot_pos()
 rt=[]
@@ -127,7 +129,7 @@ cb_center.y=int(round(sumy/isize,0))
 cut_S_Area(1)
 min_mtf=HGGT.get_Min_value(rt)
 DEBUG_PRINT("Min MTF:"+str(min_mtf))
-print(min_mtf)
+SaveLog.Save_file(min_mtf)
 # cv2.imshow(" ",imgcv)
 # cv2.waitKey(0) #35 
 # cv2.destroyAllWindows() 

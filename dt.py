@@ -20,11 +20,13 @@ import numpy as np
 from math import isnan
 import const
 import sys
+import Take1Photo
 # import math 
 
 
 ######Settings############
-Settings_path = "C:\\dotchart\\f5\\f5_s5.bmp"
+Settings_path = "C:\\dotchart\\f5\\f5im2.bmp"
+Settings_output_picture='C:/Users/YY/Desktop/photos/'
 Settings_pixel_size=1.55
 Settings_EFL_mm=2.5
 Settings_PTR_star_offset=3 #
@@ -54,7 +56,10 @@ map_count=0
 fmap=[]
 All_dots=[] #real all spots in photo
 
-
+draw_cycle_dia=4
+standard_chart_dia=12.34
+min_detected_dot=int(round(standard_chart_dia-standard_chart_dia*.55,0))
+max_detected_dot=int(round(standard_chart_dia+standard_chart_dia*.55,0))
 const.DEBUG=1
 
 
@@ -218,7 +223,12 @@ def detect_direct(x0,y0,x1,y1,dotUnit,sin_t):
                 return 1
 
 #get some basic parameters
-print("=========start==========")
+print("=========Test Component==========")
+
+Take1Photo.Capture(Settings_output_picture)
+
+sys.exit()
+print("=========Start==========")
 
 img = Image.open(Settings_path)
 
@@ -243,24 +253,26 @@ kernel = np.ones((5,5),np.uint8)
 erosion = cv2.erode(th2,kernel,iterations=1)
 dilation = cv2.dilate(erosion,kernel,iterations=1)
 
-imgray=cv2.Canny(erosion,1,30)#30 100
+imgray=cv2.Canny(erosion,1,30)#(erosion,1,30) 30 100
 # circles = cv2.HoughCircles(imgray,cv2.HOUGH_GRADIENT,1,30,
 #                             param1=50,param2=30,minRadius=5,maxRadius=60)
-circles = cv2.HoughCircles(imgray,cv2.HOUGH_GRADIENT,1,30,
-                            param1=50,param2=10,minRadius=2,maxRadius=22)
+# circles = cv2.HoughCircles(imgray,cv2.HOUGH_GRADIENT,1,30,
+                            # param1=50,param2=10,minRadius=min_detected_dot,maxRadius=max_detected_dot)
+circles = cv2.HoughCircles(imgray,cv2.HOUGH_GRADIENT,1,10,
+                            param1=1,param2=10,minRadius=2,maxRadius=15)
 cc=0
 circles = np.uint16(np.around(circles))
 
 # print f
 #print(circles)
-# ct=0
-# for cp in circles[0,:]: 
-#     ct+=1
-#     cv2.circle(imgcv,(cp[0],cp[1]),5,(0,255,55))
+ct=0
+for cp in circles[0,:]: 
+    ct+=1
+    cv2.circle(imgcv,(cp[0],cp[1]),5,(0,255,255))
 # cv2.imshow(" ",imgray)
 # cv2.waitKey(0) #35
-# cv2.imshow(" ",imgcv)
-# cv2.waitKey(0) #35
+cv2.imshow(" ",imgcv)
+cv2.waitKey(0) #35
 # print(ct)   
 # sys.exit()
 #Find the centry spot
@@ -292,9 +304,9 @@ if goldSpot_cnt==1:
             print("==Found Center Spot :",spot_center_x,spot_center_y,spot_dia)
            
             print("Image center:",img_center_x,img_center_y)
-            cv2.circle(imgcv,(cp[0],cp[1]),10,(255,0,255))
+            cv2.circle(imgcv,(cp[0],cp[1]),draw_cycle_dia,(0,0,255))
         # else:
-        #     cv2.circle(imgcv,(cp[0],cp[1]),10,(255,255,0))
+        #     cv2.circle(imgcv,(cp[0],cp[1]),draw_cycle_dia,(255,255,0))
 else:
     sgtr="Canot found Center Spot  "
     error_report(sgtr)
@@ -321,7 +333,7 @@ for cp in circles[0,:]:
     
     if(ispos(cp[0],img_center_x,cp[1],img_center_y,spot_G9_deviation,spot_G9_deviation)) :
         #print(cp[0],cp[1])
-        #cv2.circle(imgcv,(cp[0],cp[1]),10,(0,0,255))
+        # cv2.circle(imgcv,(cp[0],cp[1]),draw_cycle_dia,(0,0,255))
         spot_G9_list[0].append(cp[0])
         spot_G9_list[1].append(cp[1])
 
@@ -349,7 +361,7 @@ map_Column_cnt=int(img_length/spot_Unit)
 # print("r=",map_Row_cnt,"c=",map_Column_cnt)
 
 #Get the theory map
-#cv2.circle(imgcv,(img_center_x,img_center_y),10,(0,0,255))
+#cv2.circle(imgcv,(img_center_x,img_center_y),draw_cycle_dia,(0,0,255))
 
 #old algorathm
 # # map_offset_x=int(round(spot_center_x-img_center_x,0))
@@ -369,7 +381,7 @@ map_Column_cnt=int(img_length/spot_Unit)
 #check
 # for i in maps:
 #     #print (i.x,i.y)
-#     cv2.circle(imgcv,(i.x,i.y),10,(0,0,255))
+#     cv2.circle(imgcv,(i.x,i.y),draw_cycle_dia,(0,0,255))
 # S2.0 set Map center point
 map_x=[]
 map_y=[]
@@ -408,13 +420,13 @@ Star_Left.y=spot_center_y
 Star_Right.x=spot_center_x+PTRoffset
 Star_Right.y=spot_center_y
 #check
-# cv2.circle(imgcv,(Star_Up.x,Star_Up.y),10,(0,0,255))
-# cv2.circle(imgcv,(Star_Down.x,Star_Down.y),10,(0,0,255))
-# cv2.circle(imgcv,(Star_Left.x,Star_Left.y),10,(0,0,255))
-# cv2.circle(imgcv,(Star_Right.x,Star_Right.y),10,(0,0,255))
+# cv2.circle(imgcv,(Star_Up.x,Star_Up.y),draw_cycle_dia,(0,0,255))
+# cv2.circle(imgcv,(Star_Down.x,Star_Down.y),draw_cycle_dia,(0,0,255))
+# cv2.circle(imgcv,(Star_Left.x,Star_Left.y),draw_cycle_dia,(0,0,255))
+# cv2.circle(imgcv,(Star_Right.x,Star_Right.y),draw_cycle_dia,(0,0,255))
 
 
-PTR_deviation=spot_dia*0.618## 2.1 TBD
+PTR_deviation=spot_dia*1.618## 2.1 TBD
 
 print("PTR deviation",PTR_deviation)
 # print("===Star UP :",Star_Up.x,Star_Up.y)
@@ -437,10 +449,10 @@ for cp in circles[0,:]:
         PTR_Right.y=cp[1]   
 
 ##check
-# cv2.circle(imgcv,(PTR_Up.x,PTR_Up.y),10,(0,0,255))
-# cv2.circle(imgcv,(PTR_Down.x,PTR_Down.y),10,(0,0,255))
-# cv2.circle(imgcv,(PTR_Left.x,PTR_Left.y),10,(0,0,255))
-# cv2.circle(imgcv,(PTR_Right.x,PTR_Right.y),10,(0,0,255))
+# cv2.circle(imgcv,(PTR_Up.x,PTR_Up.y),draw_cycle_dia,(0,0,255))
+# cv2.circle(imgcv,(PTR_Down.x,PTR_Down.y),draw_cycle_dia,(0,0,255))
+# cv2.circle(imgcv,(PTR_Left.x,PTR_Left.y),draw_cycle_dia,(0,0,255))
+# cv2.circle(imgcv,(PTR_Right.x,PTR_Right.y),draw_cycle_dia,(0,0,255))
 ###
 Star_LU.x=int((PTR_Up.x-PTRoffset+PTR_Left.x)/2)
 Star_LU.y=int((PTR_Up.y+PTR_Left.y-PTRoffset)/2)
@@ -454,11 +466,18 @@ Star_RU.y=int((PTR_Up.y+PTR_Right.y-PTRoffset)/2)
 
 Star_RD.x=int((PTR_Down.x+PTRoffset+PTR_Right.x)/2)
 Star_RD.y=int((PTR_Down.y+PTR_Right.y+PTRoffset)/2)
+if  Star_LU.x==0 or Star_LD.x==0 or Star_RD.x==0 or Star_RU.x==0 :
+    sgtr="Can't find PTR point\r\n"
+    sgtr+=" Star_LUx:"+str(Star_LU.x)+" Star_LUy:"+str(Star_LU.y)+"\r\n"
+    sgtr+=" Star_LDx:"+str(Star_LD.x)+" Star_LDy:"+str(Star_LD.y)+"\r\n"
+    sgtr+=" Star_RUx:"+str(Star_RU.x)+" Star_RUy:"+str(Star_RU.y)+"\r\n"
+    sgtr+=" Star_RD:"+str(Star_RD.x)+" Star_RDy:"+str(Star_RD.y)+"\r\n"
+    error_report(sgtr)
 # ##check
-# cv2.circle(imgcv,(Star_LU.x,Star_LU.y),10,(0,0,255))
-# cv2.circle(imgcv,(Star_LD.x,Star_LD.y),10,(0,0,255))
-# cv2.circle(imgcv,(Star_RU.x,Star_RU.y),10,(0,0,255))
-# cv2.circle(imgcv,(Star_RD.x,Star_RD.y),10,(0,0,255))
+# cv2.circle(imgcv,(Star_LU.x,Star_LU.y),draw_cycle_dia,(0,0,255))
+# cv2.circle(imgcv,(Star_LD.x,Star_LD.y),draw_cycle_dia,(0,0,255))
+# cv2.circle(imgcv,(Star_RU.x,Star_RU.y),draw_cycle_dia,(0,0,255))
+# cv2.circle(imgcv,(Star_RD.x,Star_RD.y),draw_cycle_dia,(0,0,255))
 
 
 for cp in circles[0,:]: 
@@ -482,17 +501,17 @@ for cp in circles[0,:]:
         PTR_RD.x=cp[0]
         PTR_RD.y=cp[1]   
 if  PTR_LU.x==0 or PTR_LD.x==0 or PTR_RU.x==0 or PTR_RD.x==0 :
-    sgtr="Can't find PTR point"
+    sgtr="Can't find PTR point\r\n"
     sgtr+=" PTR_LUx:"+str(PTR_LU.x)+" LUy:"+str(PTR_LU.y)+"\r\n"
     sgtr+=" PTR_LDx:"+str(PTR_LD.x)+" PTR_LDy:"+str(PTR_LD.y)+"\r\n"
     sgtr+=" PTR_RUx:"+str(PTR_RU.x)+" PTR_RUy:"+str(PTR_RU.y)+"\r\n"
     sgtr+=" PTR_RDx:"+str(PTR_RD.x)+" PTR_RDy:"+str(PTR_RD.y)+"\r\n"
     error_report(sgtr)
 # ##check
-# cv2.circle(imgcv,(PTR_LU.x,PTR_LU.y),10,(0,0,255))
-# cv2.circle(imgcv,(PTR_LD.x,PTR_LD.y),10,(0,0,255))
-# cv2.circle(imgcv,(PTR_RU.x,PTR_RU.y),10,(0,0,255))
-# cv2.circle(imgcv,(PTR_RD.x,PTR_RD.y),10,(0,0,255))
+# cv2.circle(imgcv,(PTR_LU.x,PTR_LU.y),draw_cycle_dia,(0,0,255))
+# cv2.circle(imgcv,(PTR_LD.x,PTR_LD.y),draw_cycle_dia,(0,0,255))
+# cv2.circle(imgcv,(PTR_RU.x,PTR_RU.y),draw_cycle_dia,(0,0,255))
+# cv2.circle(imgcv,(PTR_RD.x,PTR_RD.y),draw_cycle_dia,(0,0,255))
 
 ##TBD Calculate PTR
 ##
@@ -570,10 +589,10 @@ print("cos",Cos_theta,"sin",Sin_theta)
 # #check
 # for i in map_x:
 #     #print (i.x,i.y)
-#     cv2.circle(imgcv,(i,spot_center_y),10,(0,0,255))
+#     cv2.circle(imgcv,(i,spot_center_y),draw_cycle_dia,(0,0,255))
 # for i in map_y:s
 #     #print (i.x,i.y)
-#     cv2.circle(imgcv,(spot_center_x,i),10,(0,0,255))
+#     cv2.circle(imgcv,(spot_center_x,i),draw_cycle_dia,(0,0,255))
 
 
 
@@ -647,7 +666,7 @@ map_count=1
 for i in fmap:
    # print (i.x,i.y)
     map_count+=1
-    # cv2.circle(imgcv,(i.x,i.y),10,(0,0,255))
+    # cv2.circle(imgcv,(i.x,i.y),draw_cycle_dia,(0,0,255))
 print("==>Map spot Count:", map_count) 
 # spott=cdot_map()
 # maps=[]
@@ -664,7 +683,7 @@ print("==>Map spot Count:", map_count)
 
 #check
 # for i in maps:
-#     cv2.circle(imgcv,(i.x,i.y),10,(0,0,255))
+#     cv2.circle(imgcv,(i.x,i.y),draw_cycle_dia,(0,0,255))
 
 #####Distorion 2nd Phase
 #Map -->fmap
@@ -800,7 +819,7 @@ for inputc in goldenRow:
                         
 # # # # #check
 # # # for check_point in RCS_Spots:
-# # #     cv2.circle(imgcv,(check_point.x,check_point.y),10,(0,0,255))
+# # #     cv2.circle(imgcv,(check_point.x,check_point.y),draw_cycle_dia,(0,0,255))
 # # #     texts="("+str(check_point.rcs_x)+","+str(check_point.rcs_y)+")"
 # # #     cv2.putText(imgcv, texts, (check_point.x,check_point.y), Settings_font, 0.4, (180, 185, 185), 1)
 
@@ -919,10 +938,10 @@ for inputc in goldenRow_map:
                     break
 #check
 # # for check_point in RCS_Map:
-# #     cv2.circle(imgcv,(check_point.x,check_point.y),10,(0,0,255))
+# #     cv2.circle(imgcv,(check_point.x,check_point.y),draw_cycle_dia,(0,0,255))
 # #     texts="("+str(check_point.rcs_x)+","+str(check_point.rcs_y)+")"
 # #     cv2.putText(imgcv, texts, (check_point.x,check_point.y), Settings_font, 0.4, (180, 185, 185), 1)
-#
+
 
 #########
 ##S3 Calculating Distortion
@@ -964,7 +983,7 @@ for dts in Dt:
                 py=sp.y
                 break
 
-        cv2.circle(imgcv,(px,py),10,(0,255,0))
+        cv2.circle(imgcv,(px,py),draw_cycle_dia,(0,255,0))
         texts="Max <"+str(dts.distortion)+">"
         cv2.putText(imgcv, texts, (px,py), Settings_font, 0.4, (80, 85, 185), 1)
 
