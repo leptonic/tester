@@ -25,7 +25,7 @@ import Take1Photo
 
 
 ######Settings############
-Settings_path ="C:\\dotchart\\f5\\UVC0.jpg"  # "C:\\dotchart\\f5\\f5im2.bmp"
+Settings_path ="C:\\dotchart\\f5\\UVC175.jpg"  # "C:\\dotchart\\f5\\f5im2.bmp"
 Settings_output_picture='C:/Users/YY/Desktop/photos/'
 Settings_pixel_size=1.55
 Settings_EFL_mm=2.5
