@@ -25,7 +25,7 @@ import Take1Photo
 
 
 ######Settings############
-Settings_path ="C:\\dotchart\\f5\\UVC0.jpg"  # "C:\\dotchart\\f5\\f5im2.bmp"
+Settings_path ="C:\\dotchart\\f5\\UVC175.jpg"# "C:\\dotchart\\f5\\f5im2.bmp"
 Settings_output_picture='C:/Users/YY/Desktop/photos/'
 Settings_pixel_size=1.55
 Settings_EFL_mm=2.5
@@ -203,7 +203,7 @@ def abs_value(a):
 def get_distance(x1,y1,x2,y2):
     return (((float(x1)-float(x2))**2+(float(y1)-float(y2))**2)**0.5)   
 
-def detect_direct(x0,y0,x1,y1,dotUnit,sin_t):# 4=right 3=left 1=up 2=down
+def detect_direct(x0,y0,x1,y1,dotUnit,sin_t):
     global spot_dia
     if dotUnit==0: #or sin_t==0:
         print("!!!Error input error at >>Detect_Direct<<")
@@ -274,12 +274,10 @@ circles = np.uint16(np.around(circles))
 
 # print f
 #print(circles)
-# ct=0
-# for cp in circles[0,:]: 
-#     ct+=1
-#     cv2.circle(imgcv,(cp[0],cp[1]),5,(0,255,255))
-### circles is the  spots that detected from real photo.
-
+ct=0
+for cp in circles[0,:]: 
+    ct+=1
+    cv2.circle(imgcv,(cp[0],cp[1]),5,(0,255,255))
 
 #Optimize redundancy point
 # 
@@ -725,7 +723,7 @@ if rc>0:
 # 2.7.1 Build Dot_RCS center is (0,0) left one is (-1,0) up one is (0,-1)
 #cRCS
 RCS_Spots=[]
-goldenCol=[]
+goldenRow=[]
 #Setup ZERO position
 tr=cRCS()
 tr.rcs_x=0
@@ -733,64 +731,55 @@ tr.rcs_y=0
 tr.x=spot_center_x
 tr.y=spot_center_y
 RCS_Spots.append(tr)
-goldenCol.append(tr)
+goldenRow.append(tr)
 RCS_Spots_index=0
 
-# Find  center Colume
-for i in  range(1,int(map_Row_cnt/2)+3):  #find down arrow
+# Find  center Row
+for i in  range(1,int(map_Column_cnt/2)+3):  #find right arrow
 
     for c in All_dots: 
         tr=cRCS() 
-        tr.rcs_x=0  
+        tr.rcs_y=0  
         #print(i,":",len(RCS_Spots))
-        if(detect_direct(RCS_Spots[RCS_Spots_index].x,RCS_Spots[RCS_Spots_index].y,c.x,c.y,spot_Unit,Sin_theta*4)==2 ):
+        if(detect_direct(RCS_Spots[RCS_Spots_index].x,RCS_Spots[RCS_Spots_index].y,c.x,c.y,spot_Unit,Sin_theta*2)==4 ):
             RCS_Spots_index+=1        
-            tr.rcs_y=i
+            tr.rcs_x=i
             tr.x=c.x
             tr.y=c.y
             RCS_Spots.append(tr)
-            goldenCol.append(tr)
+            goldenRow.append(tr)
             break
 
-for i in  range(1,int(map_Row_cnt/2)+3):  #find up arrow
+for i in  range(1,int(map_Column_cnt/2)+3):  #find left arrow
 
     for c in All_dots: 
         tr=cRCS() 
-        tr.rcs_x=0  
+        tr.rcs_y=0  
         #print(i,":",len(RCS_Spots))
         if(i==1):
-            if(detect_direct(RCS_Spots[0].x,RCS_Spots[0].y,c.x,c.y,spot_Unit,Sin_theta*4)==1 ):
+            if(detect_direct(RCS_Spots[0].x,RCS_Spots[0].y,c.x,c.y,spot_Unit,Sin_theta*2)==3 ):
                 RCS_Spots_index+=1        
-                tr.rcs_y=-i
+                tr.rcs_x=-i
                 tr.x=c.x
                 tr.y=c.y
                 RCS_Spots.append(tr)
-                goldenCol.append(tr)
+                goldenRow.append(tr)
                 break
 
         else:
-            if(detect_direct(RCS_Spots[RCS_Spots_index].x,RCS_Spots[RCS_Spots_index].y,c.x,c.y,spot_Unit,Sin_theta*4)==1 ):
+            if(detect_direct(RCS_Spots[RCS_Spots_index].x,RCS_Spots[RCS_Spots_index].y,c.x,c.y,spot_Unit,Sin_theta*2)==3 ):
                 RCS_Spots_index+=1        
-                tr.rcs_y=-i
+                tr.rcs_x=-i
                 tr.x=c.x
                 tr.y=c.y
                 RCS_Spots.append(tr)
-                goldenCol.append(tr)
+                goldenRow.append(tr)
                 break
 
 
-# for check_point in goldenCol:
-#     cv2.circle(imgcv,(check_point.x,check_point.y),draw_cycle_dia,(0,0,255))
-#     texts="("+str(check_point.rcs_x)+","+str(check_point.rcs_y)+")"
-#     cv2.putText(imgcv, texts, (check_point.x,check_point.y), Settings_font, 0.4, (180, 185, 185), 1)
-# cv2.imwrite("C:\\dotchart\\f5\\goldenCol.jpg",imgcv)
-# print("GoldenCol:",len(goldenCol))
-
-# cv2.imshow("goldenCol",imgcv)
-# cv2.waitKey(0) #35   
-# sys.exit()           
+           
 ###Make whole RCS map
-for inputc in goldenCol:
+for inputc in goldenRow:
     #find column
 
     # inputc.rcs_x=RCS_Spots[0].rcs_x
@@ -798,47 +787,47 @@ for inputc in goldenCol:
     # inputc.x=RCS_Spots[0].x
     # inputc.y=RCS_Spots[0].y
 
-    for j in range(1,int(map_Column_cnt/2)+3):# left
+    for j in range(1,int(map_Row_cnt/2)+3):# down
         for c in All_dots:
             tr=cRCS() 
-            tr.rcs_y=inputc.rcs_y 
+            tr.rcs_x=inputc.rcs_x 
             #print(i,":",len(RCS_Spots))
             if(j==1):
-                if(detect_direct(inputc.x,inputc.y,c.x,c.y,spot_Unit,Sin_theta*8)==4 ):
+                if(detect_direct(inputc.x,inputc.y,c.x,c.y,spot_Unit,Sin_theta*2)==2 ):
                     RCS_Spots_index+=1        
-                    tr.rcs_x=j
+                    tr.rcs_y=j
                     tr.x=c.x
                     tr.y=c.y
                     RCS_Spots.append(tr)
                     break
 
             else:
-                if(detect_direct(RCS_Spots[RCS_Spots_index].x,RCS_Spots[RCS_Spots_index].y,c.x,c.y,spot_Unit,Sin_theta*8)==4):
+                if(detect_direct(RCS_Spots[RCS_Spots_index].x,RCS_Spots[RCS_Spots_index].y,c.x,c.y,spot_Unit,Sin_theta*2)==2):
                     RCS_Spots_index+=1        
-                    tr.rcs_x=j
+                    tr.rcs_y=j
                     tr.x=c.x
                     tr.y=c.y
                     RCS_Spots.append(tr)
                     break
 
-    for j in range(1,int(map_Column_cnt/2)+3): #up
+    for j in range(1,int(map_Row_cnt/2)+3): #up
         for c in All_dots:
             tr=cRCS() 
-            tr.rcs_y=inputc.rcs_y 
+            tr.rcs_x=inputc.rcs_x 
             #print(i,":",len(RCS_Spots))
             if(j==1):
-                if(detect_direct(inputc.x,inputc.y,c.x,c.y,spot_Unit,Sin_theta*8)==3 ):
+                if(detect_direct(inputc.x,inputc.y,c.x,c.y,spot_Unit,Sin_theta*3)==1 ):
                     RCS_Spots_index+=1        
-                    tr.rcs_x=-j
+                    tr.rcs_y=-j
                     tr.x=c.x
                     tr.y=c.y
                     RCS_Spots.append(tr)
                     break
 
             else:
-                if(detect_direct(RCS_Spots[RCS_Spots_index].x,RCS_Spots[RCS_Spots_index].y,c.x,c.y,spot_Unit,Sin_theta*8)==3):
+                if(detect_direct(RCS_Spots[RCS_Spots_index].x,RCS_Spots[RCS_Spots_index].y,c.x,c.y,spot_Unit,Sin_theta*3)==1):
                     RCS_Spots_index+=1        
-                    tr.rcs_x=-j
+                    tr.rcs_y=-j
                     tr.x=c.x
                     tr.y=c.y
                     RCS_Spots.append(tr)
@@ -846,16 +835,10 @@ for inputc in goldenCol:
                          
                         
 # # # # #check
-
-# for check_point in RCS_Spots:
-#     cv2.circle(imgcv,(check_point.x,check_point.y),draw_cycle_dia,(0,0,255))
-#     texts="("+str(check_point.rcs_x)+","+str(check_point.rcs_y)+")"
-#     cv2.putText(imgcv, texts, (check_point.x,check_point.y), Settings_font, 0.4, (180, 185, 185), 1)
-# cv2.imwrite("C:\\dotchart\\f5\\RCS_Spots.jpg",imgcv)
-# print("RcSport_cnt:",len(RCS_Spots))
-# cv2.imshow("RCS_Spots",imgcv)
-# cv2.waitKey(0) #35   
-# sys.exit()
+# # # for check_point in RCS_Spots:
+# # #     cv2.circle(imgcv,(check_point.x,check_point.y),draw_cycle_dia,(0,0,255))
+# # #     texts="("+str(check_point.rcs_x)+","+str(check_point.rcs_y)+")"
+# # #     cv2.putText(imgcv, texts, (check_point.x,check_point.y), Settings_font, 0.4, (180, 185, 185), 1)
 
 # S2.7.2 Get Whole RCS_map
 #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -971,24 +954,10 @@ for inputc in goldenRow_map:
                     RCS_Map.append(tr)
                     break
 #check
-
 # # for check_point in RCS_Map:
 # #     cv2.circle(imgcv,(check_point.x,check_point.y),draw_cycle_dia,(0,0,255))
 # #     texts="("+str(check_point.rcs_x)+","+str(check_point.rcs_y)+")"
 # #     cv2.putText(imgcv, texts, (check_point.x,check_point.y), Settings_font, 0.4, (180, 185, 185), 1)
-
-# # cv2.imwrite("C:\\dotchart\\f5\\RCS_Map.jpg",imgcv)
-# # cv2.imshow("RCS",imgcv)
-# # cv2.waitKey(0) #35   
-
-
-
-# for check_point in  All_dots:
-#     cv2.circle(imgcv,(check_point.x,check_point.y),draw_cycle_dia,(0,50,255))
-   
-# cv2.imwrite("C:\\dotchart\\f5\\All_dots.jpg",imgcv)
-# cv2.imshow("TCS",imgcv)
-# cv2.waitKey(0) #35   
 
 
 #########
@@ -1013,9 +982,7 @@ for sp in RCS_Spots:
                 Dt_v.append(tr.distortion)
                 Dt.append(tr)
 
-
 # Dt.sort(reverse=True)
-print("dbg_DT")
 print(Dt_v)
 Dt_v.sort(reverse=True)
 Dt_Max=Dt_v[0]
@@ -1041,6 +1008,5 @@ for dts in Dt:
 
 dt_avg=Get_Average(Dt_v)
 print(">>>>>Distortion AVG:",dt_avg)
-cv2.imwrite("C:\\dotchart\\f5\\Final.jpg",imgcv)
-cv2.imshow("Finnal",imgcv)
+cv2.imshow(" ",imgcv)
 cv2.waitKey(0) #35   
