@@ -738,6 +738,8 @@ if rc>0:
 #cRCS
 RCS_Spots=[]
 goldenCol=[]
+RoofRow=0.0
+BottomRow=0.0
 #Setup ZERO position
 tr=cRCS()
 tr.rcs_x=0
@@ -758,6 +760,7 @@ for i in  range(1,int(map_Row_cnt/2)+3):  #find down arrow
         if(detect_direct(RCS_Spots[RCS_Spots_index].x,RCS_Spots[RCS_Spots_index].y,c.x,c.y,spot_Unit,Sin_theta*4)==2 ):
             RCS_Spots_index+=1        
             tr.rcs_y=i
+            BottomRow=i
             tr.x=c.x
             tr.y=c.y
             RCS_Spots.append(tr)
@@ -784,12 +787,13 @@ for i in  range(1,int(map_Row_cnt/2)+3):  #find up arrow
             if(detect_direct(RCS_Spots[RCS_Spots_index].x,RCS_Spots[RCS_Spots_index].y,c.x,c.y,spot_Unit,Sin_theta*4)==1 ):
                 RCS_Spots_index+=1        
                 tr.rcs_y=-i
+                RoofRow=-i
                 tr.x=c.x
                 tr.y=c.y
                 RCS_Spots.append(tr)
                 goldenCol.append(tr)
                 break
-
+print("RoofRow:",RoofRow,"BottomRow",BottomRow)
 ##check
 # for check_point in goldenCol:
 #     cv2.circle(imgcv,(check_point.x,check_point.y),draw_cycle_dia,(0,0,255))
@@ -834,7 +838,7 @@ for inputc in goldenCol:
                     RCS_Spots.append(tr)
                     break
 
-    for j in range(1,int(map_Column_cnt/2)+3): #up
+    for j in range(1,int(map_Column_cnt/2)+3): #right
         for c in All_dots:
             tr=cRCS() 
             tr.rcs_y=inputc.rcs_y 
@@ -857,18 +861,32 @@ for inputc in goldenCol:
                     RCS_Spots.append(tr)
                     break
                          
-                        
-# # # # #check
+#Add for 175 TBD only do the up half part NOT USE BOTTOM ROW
+#Detect extern virual row 
+# RoofRow BottomRow 
+for nRCS in RCS_Spots:
+    if(nRCS.rcs_y==RoofRow):
+        for c in All_dots: 
+            if(detect_direct(nRCS.x,nRCS.y,c.x,c.y,spot_Unit,Sin_theta*12)==1 ):
+                 nspot=cRCS()
+                 nspot.x=c.x
+                 nspot.y=c.y
+                 nspot.rcs_x=nRCS.rcs_x
+                 nspot.rcs_y=nRCS.rcs_y-1
+                 RCS_Spots.append(nspot)
 
-for check_point in RCS_Spots:
-    cv2.circle(imgcv,(check_point.x,check_point.y),draw_cycle_dia,(0,0,255))
-    texts="("+str(check_point.rcs_x)+","+str(check_point.rcs_y)+")"
-    cv2.putText(imgcv, texts, (check_point.x,check_point.y), Settings_font, 0.4, (180, 185, 185), 1)
-cv2.imwrite("C:\\dotchart\\f5\\RCS_Spots.jpg",imgcv)
-print("RcSport_cnt:",len(RCS_Spots))
-cv2.imshow("RCS_Spots",imgcv)
-cv2.waitKey(0) #35   
-sys.exit()
+
+# # # # #check Spots
+
+# for check_point in RCS_Spots:
+#     cv2.circle(imgcv,(check_point.x,check_point.y),draw_cycle_dia,(0,0,255))
+#     texts="("+str(check_point.rcs_x)+","+str(check_point.rcs_y)+")"
+#     cv2.putText(imgcv, texts, (check_point.x,check_point.y), Settings_font, 0.4, (180, 185, 185), 1)
+# cv2.imwrite("C:\\dotchart\\f5\\RCS_Spots.jpg",imgcv)
+# print("RcSport_cnt:",len(RCS_Spots))
+# cv2.imshow("RCS_Spots",imgcv)
+# cv2.waitKey(0) #35   
+# sys.exit()
 
 # S2.7.2 Get Whole RCS_map
 #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -884,6 +902,9 @@ tr.y=spot_center_y
 RCS_Map.append(tr)
 goldenRow_map.append(tr)
 RCS_Map_index=0
+
+Map_Bottom_Row=0
+Map_Roof_Row=0
 
 # Find  center Row
 for i in  range(1,int(map_Column_cnt/2)+3):  #find right arrow
@@ -983,25 +1004,30 @@ for inputc in goldenRow_map:
                     tr.y=c.y
                     RCS_Map.append(tr)
                     break
-#check
 
-# # for check_point in RCS_Map:
-# #     cv2.circle(imgcv,(check_point.x,check_point.y),draw_cycle_dia,(0,0,255))
-# #     texts="("+str(check_point.rcs_x)+","+str(check_point.rcs_y)+")"
-# #     cv2.putText(imgcv, texts, (check_point.x,check_point.y), Settings_font, 0.4, (180, 185, 185), 1)
+#Add for 175 TBD only do the down half part NOT USE ROOF ROW
+#Detect extern virual row 
+# Map_Bottom_Row Map_Roof_Row 
 
-# # cv2.imwrite("C:\\dotchart\\f5\\RCS_Map.jpg",imgcv)
-# # cv2.imshow("RCS",imgcv)
-# # cv2.waitKey(0) #35   
+print("RCS map:",len(RCS_Map))
+#check Map
+# for check_point in RCS_Map:
+#     cv2.circle(imgcv,(check_point.x,check_point.y),draw_cycle_dia,(0,0,255))
+#     texts="("+str(check_point.rcs_x)+","+str(check_point.rcs_y)+")"
+#     cv2.putText(imgcv, texts, (check_point.x,check_point.y), Settings_font, 0.4, (180, 185, 185), 1)
 
-
-
-# for check_point in  All_dots:
-#     cv2.circle(imgcv,(check_point.x,check_point.y),draw_cycle_dia,(0,50,255))
-   
-# cv2.imwrite("C:\\dotchart\\f5\\All_dots.jpg",imgcv)
-# cv2.imshow("TCS",imgcv)
+# cv2.imwrite("C:\\dotchart\\f5\\RCS_Map.jpg",imgcv)
+# cv2.imshow("RCS",imgcv)
 # cv2.waitKey(0) #35   
+# sys.exit()
+
+
+# # for check_point in  All_dots:
+# #     cv2.circle(imgcv,(check_point.x,check_point.y),draw_cycle_dia,(0,50,255))
+   
+# # cv2.imwrite("C:\\dotchart\\f5\\All_dots.jpg",imgcv)
+# # cv2.imshow("TCS",imgcv)
+# # cv2.waitKey(0) #35   
 
 
 #########
