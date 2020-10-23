@@ -1081,5 +1081,5 @@ for dts in Dt:
 dt_avg=Get_Average(Dt_v)
 print(">>>>>Distortion AVG:",dt_avg)
 cv2.imwrite("C:\\dotchart\\f5\\Final.jpg",imgcv)
-cv2.imshow("Finnal",imgcv)
-cv2.waitKey(0) #35   
+# cv2.imshow("Finnal",imgcv)
+# cv2.waitKey(0) #35   
